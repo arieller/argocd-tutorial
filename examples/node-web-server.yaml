@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-web-server
+  labels:
+    app: node-web-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: node-web-server
+  template:
+    metadata:
+      labels:
+        app: node-web-server
+    spec:
+      containers:
+      - name: node-server
+        image: node:18-alpine
+        command: 
+        - node
+        - -e
+        - |
+          const http = require('http');
+          const server = http.createServer((req, res) => {
+            res.writeHead(200, {'Content-Type': 'text/plain'});
+            res.end('Hello World from Node.js Web Server!\n');
+          });
+          server.listen(3000, () => {
+            console.log('Server running on port 3000');
+          });
+        ports:
+        - containerPort: 3000  # ← Now it has a port!
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-web-server-service
+  labels:
+    app: node-web-server
+spec:
+  selector:
+    app: node-web-server
+  ports:
+  - port: 80
+    targetPort: 3000  # Maps port 80 to container port 3000
+    protocol: TCP
+  type: ClusterIP
