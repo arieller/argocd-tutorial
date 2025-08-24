@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: node-hello-app
+  namespace: argocd
+  labels:
+    app: node-hello-app
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/arieller/argocd-tutorial.git
+    targetRevision: HEAD
+    path: node-app
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

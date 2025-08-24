@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-hello-app
+  namespace: default
+  labels:
+    app: node-hello-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: node-hello-app
+  template:
+    metadata:
+      labels:
+        app: node-hello-app
+    spec:
+      containers:
+      - name: node-app
+        image: node:18-alpine
+        command: ["node", "-e", "console.log('Hello World from Node.js!'); setInterval(() => console.log('Still running...'), 5000);"]
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
