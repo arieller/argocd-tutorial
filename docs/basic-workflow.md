@@ -29,7 +29,7 @@ kubectl port-forward svc/argocd-server -n argocd 8080:443
 
 # Open browser to https://localhost:8080
 # Username: admin
-# Password: (from setup script output)
+# Password: (from setup script output) FXFeRvFluS7VPNXR
 ```
 
 ## Step 4: Deploy Your First Application

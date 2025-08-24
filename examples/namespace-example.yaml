@@ -1,0 +1,35 @@
+# Example: Multi-environment setup with namespaces
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+  labels:
+    environment: development
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: staging
+  labels:
+    environment: staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: production
+  labels:
+    environment: production
+---
+# Resource quota for dev environment
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: dev-quota
+  namespace: dev
+spec:
+  hard:
+    requests.cpu: "2"
+    requests.memory: 4Gi
+    limits.cpu: "4"
+    limits.memory: 8Gi
+    pods: "10"

@@ -1,0 +1,105 @@
+# ArgoCD Projects for Multi-tenancy
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: team-frontend
+  namespace: argocd
+spec:
+  description: Frontend team project
+  
+  # Source repositories this project can deploy from
+  sourceRepos:
+  - 'https://github.com/company/frontend-*'
+  - 'https://github.com/company/shared-components'
+  
+  # Destinations this project can deploy to
+  destinations:
+  - namespace: 'frontend-*'
+    server: https://kubernetes.default.svc
+  - namespace: 'shared'
+    server: https://kubernetes.default.svc
+  
+  # Allowed cluster-scoped resources
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  
+  # Allowed namespace-scoped resources
+  namespaceResourceWhitelist:
+  - group: 'apps'
+    kind: Deployment
+  - group: ''
+    kind: Service
+  - group: ''
+    kind: ConfigMap
+  - group: ''
+    kind: Secret
+  - group: 'networking.k8s.io'
+    kind: Ingress
+  
+  # RBAC roles for this project
+  roles:
+  - name: developer
+    description: Frontend developers
+    policies:
+    - p, proj:team-frontend:developer, applications, get, team-frontend/*, allow
+    - p, proj:team-frontend:developer, applications, sync, team-frontend/*, allow
+    - p, proj:team-frontend:developer, applications, create, team-frontend/*, allow
+    - p, proj:team-frontend:developer, applications, delete, team-frontend/*, deny
+    groups:
+    - company:frontend-developers
+    
+  - name: admin
+    description: Frontend team leads
+    policies:
+    - p, proj:team-frontend:admin, applications, *, team-frontend/*, allow
+    - p, proj:team-frontend:admin, repositories, *, *, allow
+    groups:
+    - company:frontend-leads
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: team-backend
+  namespace: argocd
+spec:
+  description: Backend team project
+  
+  sourceRepos:
+  - 'https://github.com/company/backend-*'
+  - 'https://github.com/company/shared-infrastructure'
+  
+  destinations:
+  - namespace: 'backend-*'
+    server: https://kubernetes.default.svc
+  - namespace: 'database'
+    server: https://kubernetes.default.svc
+  
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  - group: 'storage.k8s.io'
+    kind: StorageClass
+  
+  namespaceResourceWhitelist:
+  - group: 'apps'
+    kind: Deployment
+  - group: 'apps'
+    kind: StatefulSet
+  - group: ''
+    kind: Service
+  - group: ''
+    kind: PersistentVolumeClaim
+  - group: ''
+    kind: ConfigMap
+  - group: ''
+    kind: Secret
+  
+  roles:
+  - name: developer
+    policies:
+    - p, proj:team-backend:developer, applications, get, team-backend/*, allow
+    - p, proj:team-backend:developer, applications, sync, team-backend/*, allow
+    groups:
+    - company:backend-developers

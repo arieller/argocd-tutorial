@@ -1,0 +1,44 @@
+# ArgoCD RBAC Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-rbac-cm
+  namespace: argocd
+data:
+  # Built-in policy
+  policy.default: role:readonly
+  
+  # Custom RBAC policies
+  policy.csv: |
+    # Format: p, subject, resource, action, object, effect
+    
+    # Admin role - full access
+    p, role:admin, applications, *, */*, allow
+    p, role:admin, clusters, *, *, allow
+    p, role:admin, repositories, *, *, allow
+    
+    # Developer role - limited access
+    p, role:developer, applications, get, */*, allow
+    p, role:developer, applications, sync, */*, allow
+    p, role:developer, applications, create, */*, allow
+    p, role:developer, applications, delete, */*, deny
+    
+    # Team-specific roles
+    p, role:frontend-team, applications, *, frontend-*/*, allow
+    p, role:backend-team, applications, *, backend-*/*, allow
+    
+    # Project-specific permissions
+    p, proj:team-frontend:developer, applications, sync, team-frontend/*, allow
+    p, proj:team-backend:developer, applications, sync, team-backend/*, allow
+    
+    # Group mappings (assuming OIDC/SAML integration)
+    g, company:platform-team, role:admin
+    g, company:frontend-developers, role:frontend-team
+    g, company:backend-developers, role:backend-team
+    
+    # User-specific assignments
+    g, john@company.com, role:developer
+    g, jane@company.com, role:admin
+  
+  # OIDC group claims mapping
+  scopes: '[groups, email]'

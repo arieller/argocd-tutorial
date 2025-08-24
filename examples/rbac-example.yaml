@@ -1,0 +1,62 @@
+# Kubernetes RBAC Example
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: frontend-deployer
+  namespace: frontend-dev
+---
+# Role: defines what can be done
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: frontend-dev
+  name: deployment-manager
+rules:
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: [""]
+  resources: ["services", "configmaps"]
+  verbs: ["get", "list", "watch", "create", "update", "patch"]
+---
+# RoleBinding: connects user to role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: frontend-deployer-binding
+  namespace: frontend-dev
+subjects:
+- kind: ServiceAccount
+  name: frontend-deployer
+  namespace: frontend-dev
+- kind: User
+  name: john@company.com
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: deployment-manager
+  apiGroup: rbac.authorization.k8s.io
+---
+# ClusterRole: cluster-wide permissions
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: namespace-admin
+rules:
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+# ClusterRoleBinding: applies cluster role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: platform-team-namespace-admin
+subjects:
+- kind: User
+  name: platform-team@company.com
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: namespace-admin
+  apiGroup: rbac.authorization.k8s.io

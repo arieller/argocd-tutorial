@@ -1,0 +1,78 @@
+# Multi-tenant Application Examples
+
+# Frontend team application
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: frontend-web-app
+  namespace: argocd
+  labels:
+    team: frontend
+    environment: production
+spec:
+  project: team-frontend  # Restricted to frontend project
+  source:
+    repoURL: https://github.com/company/frontend-web-app.git
+    targetRevision: main
+    path: k8s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: frontend-prod  # Team-specific namespace
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+
+---
+# Backend team application
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: backend-api
+  namespace: argocd
+  labels:
+    team: backend
+    environment: production
+spec:
+  project: team-backend  # Restricted to backend project
+  source:
+    repoURL: https://github.com/company/backend-api.git
+    targetRevision: main
+    path: k8s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: backend-prod  # Team-specific namespace
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+
+---
+# Database application (shared infrastructure)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgres-cluster
+  namespace: argocd
+  labels:
+    team: platform
+    type: infrastructure
+spec:
+  project: platform-infrastructure
+  source:
+    repoURL: https://github.com/company/infrastructure.git
+    targetRevision: main
+    path: databases/postgres
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: database
+  syncPolicy:
+    automated:
+      prune: false  # More careful with infrastructure
+      selfHeal: false
+    syncOptions:
+    - CreateNamespace=true
